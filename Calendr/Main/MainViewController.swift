@@ -396,11 +396,21 @@ class MainViewController: NSViewController, NSPopoverDelegate {
             .disposed(by: popoverDisposeBag)
     }
 
+    private var mouseMovedEventMonitor: Any?
+
     func popoverWillShow(_ notification: Notification) {
 
         notification.popover.animates = false
 
         mainStatusItem.button!.isHighlighted = true
+
+        mouseMovedEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved) { [view] event in
+
+            if !NSMouseInRect(NSEvent.mouseLocation, NSScreen.main!.frame, false) {
+                view.window?.performClose(nil)
+            }
+            return event
+        }
     }
 
     func popoverWillClose(_ notification: Notification) {
@@ -408,6 +418,8 @@ class MainViewController: NSViewController, NSPopoverDelegate {
         notification.popover.animates = true
 
         mainStatusItem.button!.isHighlighted = false
+
+        NSEvent.removeMonitor(mouseMovedEventMonitor!)
     }
 
     private func setUpMainStatusItem() {
